@@ -4,66 +4,67 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository Overview
 
-This repository contains the Cloudflare VibeSDK template catalog - a dynamic template generation system for AI-assisted application development. Templates are not stored as complete projects but are dynamically generated from base references and overlay configurations.
+This repository contains the **React Native + Expo mobile app template catalog** for the mobileapp-production project. Templates are dynamically generated from base references and overlay configurations to create production-ready mobile applications.
 
 ### Key Concepts
 
 **Dynamic Generation Architecture**: Templates are generated through a three-tier system:
-1. **Base References** (`reference/`) - Clean starter templates (vite-reference, next-reference, minimal-js-reference)
+1. **Base References** (`reference/`) - Clean starter template (`expo-reference`)
 2. **Template Definitions** (`definitions/`) - YAML configs + overlay files that customize base references
 3. **Generated Output** (`build/`) - Final templates created by applying overlays to base references
-
-**Verification System**: The `originals/` directory contains ground-truth templates for parity validation. Use `tools/generate_templates.py --verify` to ensure generated templates match known-good originals.
 
 ## Directory Structure
 
 ```
-reference/              # Base reference templates
-├── vite-reference/     # Base Vite/React template with full component library
-├── next-reference/     # Base Next.js template
-└── minimal-js-reference/  # Minimal JavaScript starter
+reference/              # Base reference template
+└── expo-reference/     # Base React Native + Expo template with Cloudflare Workers
 
 definitions/            # Template definitions and overlays
 ├── *.yaml              # Template configuration files
 └── <template-name>/    # Overlay files that customize the base reference
-    ├── src/            # Source code overrides
-    ├── worker/         # Cloudflare Worker code
+    ├── worker/         # Cloudflare Worker code overrides
+    ├── shared/         # Shared types and data
+    ├── lib/            # Library utilities
     ├── prompts/        # AI selection and usage docs (required)
-    ├── wrangler.jsonc  # Worker configuration
-    └── package.json    # Dependency overrides (optional)
+    └── wrangler.jsonc  # Worker configuration
 
 build/                  # Generated templates (gitignored, regenerate as needed)
-originals/              # Ground truth templates for verification
 tools/                  # Build and verification scripts
 zips/                   # Packaged templates for distribution
 ```
 
 ## Template Types
 
-The repository supports multiple template variations, all generated from shared base references:
+All templates are **React Native + Expo** mobile apps with Cloudflare Workers backend:
 
-**Vite-based Templates** (use `vite-reference`):
-- **vite-cfagents-runner** - Cloudflare Agents SDK with MCP tool support
-- **vite-cf-DO-runner** - Durable Objects for stateful applications
-- **vite-cf-DO-KV-runner** - Durable Objects + KV storage
-- **vite-cf-DO-v2-runner** - Enhanced DO with versioned storage
-- **c-code-react-runner** - General React/Vite with Workers integration
-- **minimal-vite** - Minimal Vite starter
+| Template | Description | Use Case |
+|----------|-------------|----------|
+| **expo-blank** | Basic Expo + Workers | Simple mobile apps, client-side apps with basic API |
+| **expo-DO** | Expo + Durable Objects | Stateful apps (counters, user data, real-time features) |
+| **expo-DO-v2** | Expo + Multi-entity DO | Multi-entity storage (chat apps, e-commerce, dashboards) |
+| **expo-agents** | Expo + AI Agents (MCP) | AI chatbots, intelligent assistants, LLM-powered apps |
 
-**Next.js Templates** (use `next-reference`):
-- **c-code-next-runner** - OpenNext for Cloudflare deployment (currently disabled)
+### Common Patterns Across All Templates
 
-**Minimal Templates** (use `minimal-js-reference`):
-- **minimal-js** - Bare-bones JavaScript starter
-- **reveal-presentation-dev** - Reveal.js presentation framework
+- **React Native + Expo SDK 52** for cross-platform mobile development
+- **expo-router ~4.0** for file-based navigation
+- **StyleSheet.create()** for styling (NOT Tailwind CSS)
+- **Cloudflare Workers + Hono** for backend APIs
+- **TypeScript** with strict typing
+- Pre-built UI components (Button, Card, TextInput)
 
-All templates share common patterns:
-- Cloudflare Workers runtime via `wrangler.jsonc`
-- TypeScript with strict typing
-- shadcn/ui + Radix UI component libraries (full templates)
-- Tailwind CSS for styling
-- Comprehensive error boundaries
-- AI Gateway integration patterns
+### Critical Restrictions
+
+**ALWAYS use:**
+- React Native components: `View`, `Text`, `ScrollView`, `TouchableOpacity`, `TextInput`, `Image`, `FlatList`
+- `StyleSheet.create()` for all styling
+- expo-router for navigation (`Link`, `useRouter`, `useLocalSearchParams`)
+
+**NEVER use:**
+- HTML elements (`div`, `span`, `button`, `input`, `img`, `h1`, `p`)
+- Tailwind CSS or `className` props
+- CSS files or web styles
+- React Router DOM
 
 ## Development Workflows
 
@@ -74,16 +75,10 @@ All templates share common patterns:
 python3 tools/generate_templates.py --clean
 
 # Generate a specific template
-python3 tools/generate_templates.py -t vite-cfagents-runner
+python3 tools/generate_templates.py -t expo-agents
 
-# Generate and verify against originals with diffs
+# Generate and verify with diffs
 python3 tools/generate_templates.py --verify --diffs
-
-# Generate specific template and verify (skip Bun checks)
-python3 tools/generate_templates.py -t vite-cf-DO-v2-runner --verify --diffs --no-bun
-
-# Verify all templates with Bun viability checks (install/lint/build)
-python3 tools/generate_templates.py --verify
 ```
 
 ### Template Catalog and Deployment
@@ -93,36 +88,10 @@ python3 tools/generate_templates.py --verify
 python3 generate_template_catalog.py --output template_catalog.json --pretty
 
 # Package a single template
-python3 create_zip.py build/vite-cfagents-runner zips/vite-cfagents-runner.zip
+python3 create_zip.py build/expo-agents zips/expo-agents.zip
 
 # Full deployment pipeline (generate, catalog, zip, upload to R2)
 bash deploy_templates.sh
-
-# Deploy to local R2 (development)
-LOCAL_R2=true bash deploy_templates.sh
-```
-
-### Working Within Generated Templates
-
-Once templates are generated in `build/`, navigate to a template directory:
-
-```bash
-cd build/vite-cfagents-runner
-
-# Vite templates
-bun install
-bun run dev        # Development server on port 3000
-bun run build      # TypeScript check + Vite build
-bun run lint       # ESLint with caching
-bun run preview    # Build and preview on port 4173
-bun run deploy     # Build and deploy to Cloudflare
-bun run cf-typegen # Generate Worker type definitions
-
-# Next.js templates
-npm run dev        # Development server
-npm run build      # Production build
-npm run deploy     # Build and deploy
-npm run cf-typegen # Generate types
 ```
 
 ## Creating or Modifying Templates
@@ -135,7 +104,7 @@ Each template requires:
 3. **Required Files** in overlay:
    - `prompts/selection.md` - AI selection description
    - `prompts/usage.md` - Usage instructions
-   - `wrangler.jsonc` or `wrangler.toml` - Worker config
+   - `wrangler.jsonc` - Worker config (if different from base)
    - Additional overrides as needed
 
 ### YAML Configuration Schema
@@ -143,9 +112,9 @@ Each template requires:
 ```yaml
 name: "template-name"
 description: "Short description for catalog"
-base_reference: "vite-reference"  # or "next-reference" or "minimal-js-reference"
-projectType: app  # or "presentation"
-disabled: false   # Set true to exclude from catalog
+base_reference: "expo-reference"
+projectType: app
+disabled: false
 
 # Deep merge patches applied to package.json (optional)
 package_patches:
@@ -155,183 +124,181 @@ package_patches:
 
 # Glob patterns to exclude from final template (optional)
 excludes:
-  - "src/pages/reference-only/**"
-  - "src/hooks/unused-*.ts"
-
-# Only copy specific overlay files - omit to copy all (rare, optional)
-template_specific_files:
-  - "src/App.tsx"
-  - "wrangler.jsonc"
+  - "app/demo.tsx"
 ```
 
 ### Generation Process Flow
 
-1. Copy base reference (e.g., `vite-reference/`) to `build/<template-name>/`
+1. Copy base reference (`expo-reference/`) to `build/<template-name>/`
 2. Apply overlay files from `definitions/<template-name>/` (overwriting base files)
 3. Apply `package_patches` if specified (deep merge into package.json)
 4. Remove files matching `excludes` patterns
-5. Verify against `originals/<template-name>/` if it exists
 
-### Modifying Existing Templates
+## Worker Architecture
 
-**Option 1: Modify Base Reference** (affects all templates using that base)
-- Edit files in `reference/vite-reference/` or `reference/next-reference/`
-- Regenerate all templates: `python3 tools/generate_templates.py --clean`
+### Base Worker Structure (expo-reference)
 
-**Option 2: Modify Template Overlay** (affects single template)
-- Edit files in `definitions/<template-name>/`
-- Regenerate: `python3 tools/generate_templates.py -t <template-name>`
-- Verify: Add `--verify --diffs` to see changes
-
-**Option 3: Modify YAML Config** (for metadata, excludes, patches)
-- Edit `definitions/<template-name>.yaml`
-- Regenerate and verify
-
-### Important Files in Templates
-
-**Worker Configuration**:
-- `wrangler.jsonc` - Worker runtime, bindings, environment variables
-- `worker/index.ts` - Worker entry point (Hono server)
-- `worker/core-utils.ts` - DO utilities (DO templates only, DO NOT MODIFY)
-
-**Build Configuration**:
-- `vite.config.ts` - Vite build with Cloudflare plugin
-- `tsconfig.json` - TypeScript compiler options
-- `tsconfig.worker.json` - Worker-specific TS config
-- `eslint.config.js` - ESLint v9 flat config
-
-**UI Configuration**:
-- `components.json` - shadcn/ui settings
-- `tailwind.config.js` - Design tokens and plugins
-
-**Metadata Files** (AI hints):
-- `.important_files.json` - Critical files AI should preserve
-- `.donttouch_files.json` - Files AI should never modify
-- `.redacted_files.json` - Files hidden from AI context
-
-## AI Integration Patterns
-
-Templates integrate with AI services through:
-- **Cloudflare AI Gateway** - Centralized API gateway for cost control and analytics
-- **OpenAI SDK** - LLM interactions with proper error handling
-- **Cloudflare Agents SDK** - Stateful AI agents with persistent conversations (vite-cfagents-runner)
-- **MCP (Model Context Protocol)** - Tool integration for AI agents (vite-cfagents-runner)
-
-## Deployment and Distribution
-
-### Local Development Deployment
-
-```bash
-# Deploy to local R2 (requires Wrangler and local R2 setup)
-LOCAL_R2=true R2_BUCKET_NAME=your-bucket bash deploy_templates.sh
+```
+worker/
+├── index.ts          # Worker entrypoint (Hono server) - DO NOT MODIFY
+├── core-utils.ts     # DO utilities - DO NOT MODIFY
+└── userRoutes.ts     # Add your custom routes here
 ```
 
-### Production Deployment
+### Template-Specific Workers
 
-The `deploy_templates.sh` script handles end-to-end deployment:
-1. Generates all templates into `build/`
-2. Creates `template_catalog.json` with metadata
-3. Packages each template as an optimized ZIP (excludes node_modules, .wrangler, dist, etc.)
-4. Uploads catalog JSON and all ZIPs to Cloudflare R2 in parallel
+**expo-DO** (Durable Objects):
+- `worker/durableObject.ts` - DO class definition
+- `worker/userRoutes.ts` - API routes using DO
+- `worker/types.ts` - Backend types
 
-```bash
-# Production deployment (requires Wrangler authentication)
-R2_BUCKET_NAME=your-production-bucket bash deploy_templates.sh
+**expo-DO-v2** (Multi-entity storage):
+- `worker/entities.ts` - Entity definitions (User, Item, etc.)
+- `worker/user-routes.ts` - API routes with entity helpers
+- `worker/core-utils.ts` - IndexedEntity utilities
+
+**expo-agents** (AI Agents):
+- `worker/agent.ts` - Main agent class
+- `worker/chat.ts` - OpenAI integration
+- `worker/mcp-client.ts` - MCP server integration
+- `worker/tools.ts` - Tool routing and coordination
+- `worker/config.ts` - Centralized configuration
+- `worker/app-controller.ts` - Control plane DO
+
+### Important: DO NOT MODIFY
+
+These files are critical infrastructure and should never be modified:
+- `worker/index.ts` - Worker entrypoint
+- `worker/core-utils.ts` - DO/Entity utilities
+- `wrangler.jsonc` - Binding configuration
+
+## Frontend Architecture
+
+### File-based Routing (expo-router)
+
+```
+app/
+├── _layout.tsx      # Root layout
+├── index.tsx        # Home screen (/)
+├── settings.tsx     # Settings screen (/settings)
+└── [id].tsx         # Dynamic route (/123)
 ```
 
-### GitHub Actions CI/CD
+### Navigation Patterns
 
-Automated deployment is configured via GitHub Actions:
+```tsx
+import { Link, useRouter, useLocalSearchParams } from 'expo-router';
+
+// Declarative navigation
+<Link href="/settings">
+  <Text>Settings</Text>
+</Link>
+
+// Programmatic navigation
+const router = useRouter();
+router.push('/settings');
+router.replace('/home');
+router.back();
+
+// Dynamic params
+const { id } = useLocalSearchParams<{ id: string }>();
+```
+
+### Styling Pattern
+
+```tsx
+import { View, Text, StyleSheet } from 'react-native';
+
+export default function Screen() {
+  return (
+    <View style={styles.container}>
+      <Text style={styles.title}>Hello</Text>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1, padding: 16, backgroundColor: '#f8fafc' },
+  title: { fontSize: 24, fontWeight: 'bold' },
+});
+```
+
+### Pre-built Components
+
+Import from `@/components/ui/*`:
+- `Button` - Touchable button with variants
+- `Card`, `CardHeader`, `CardContent` - Card container
+- `TextInput` - Styled text input
+
+## API Integration Pattern
+
+### Calling Backend from React Native
+
+```tsx
+const API_URL = process.env.EXPO_PUBLIC_API_URL || '';
+
+// GET request
+const response = await fetch(`${API_URL}/api/items`);
+const data = await response.json();
+
+// POST request
+const response = await fetch(`${API_URL}/api/items`, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ name: 'New Item' }),
+});
+```
+
+### Adding API Routes (worker/userRoutes.ts)
+
+```typescript
+import { Hono } from "hono";
+import { Env } from './core-utils';
+
+export function userRoutes(app: Hono<{ Bindings: Env }>) {
+    app.get('/api/items', (c) => c.json({ success: true, data: [] }));
+    
+    app.post('/api/items', async (c) => {
+        const body = await c.req.json();
+        return c.json({ success: true, data: body });
+    });
+}
+```
+
+## Deployment
+
+### R2 Deployment
+
+```bash
+# Set environment variable
+export R2_BUCKET_NAME=mobileapp-templates
+
+# Full deployment (generate + catalog + zip + upload)
+bash deploy_templates.sh
+```
+
+### GitHub Actions
+
+Automated deployment via GitHub Actions:
 - Triggered on push to main branch
-- Runs verification checks (diff + Bun viability)
-- Uploads to R2 if checks pass
-- See `DEPLOYMENT_SETUP.md` for secrets configuration
+- Generates all templates
+- Creates catalog and zips
+- Uploads to R2
 
-## Architecture Patterns
-
-### Base Reference Components
-
-The `vite-reference` template includes a comprehensive component library:
-- **Radix UI** primitives - Accessible, unstyled components
-- **shadcn/ui** - Pre-built styled implementations
-- **Tailwind CSS** - Utility-first styling with design tokens
-- **Framer Motion** - Smooth animations and transitions
-- **Lucide React** - Consistent icon library
-
-Components live in `src/components/ui/` and cover forms, navigation, data display, overlays, and layouts. All generated templates inherit these unless overridden.
-
-### Worker Architecture (Hono-based)
-
-Templates use Hono for Worker request handling:
-- **Entry Point**: `worker/index.ts` exports Hono app
-- **API Routes**: Defined via Hono routing (e.g., `/api/*`)
-- **Static Assets**: Vite build output served via `serveStatic`
-- **Environment Bindings**: Access via `c.env` in route handlers
-
-### Durable Objects Pattern
-
-DO templates (`vite-cf-DO-*`) use a shared global DO class:
-- **Class Definition**: `GlobalDurableObject` in `worker/core-utils.ts`
-- **Multi-Entity Storage**: Single DO class used as KV-like storage by multiple entities
-- **Versioned Storage**: `vite-cf-DO-v2-runner` includes compare-and-swap operations
-- **Important**: NEVER modify `worker/core-utils.ts` - marked as "DO NOT TOUCH"
-
-## Error Handling and Logging
-
-### Standard Error Handling
-
-All templates implement multi-layer error handling:
-- **React Error Boundaries** - Component-level error catching
-- **Route Error Boundaries** - Page-level error isolation (Vite templates)
-- **Worker Error Handling** - Server-side error responses
-- **Client Error Reporting** - `/api/client-errors` endpoint for frontend errors
-
-### Runtime Error Logging (DO v2 Templates)
-
-The `vite-cf-DO-v2-runner` template includes automatic JSON error logging:
-
-**Error Format**: Structured JSON with timestamp, message, stack, source, filePath, lineNumber, columnNumber, severity ('warning'|'error'|'fatal'), rawOutput
-
-**Automatic Capture**:
-- `console.error()` → JSON error logs
-- `console.warn()` → JSON warning logs
-- `console.log()` with error keywords → JSON error logs
-- Unhandled exceptions → JSON error logs
-- Unhandled promise rejections → JSON error logs
-
-**Implementation**: Core logic in `worker/core-utils.ts` (DO NOT MODIFY), client initialization in `src/lib/clientErrorLogger.ts`, auto-imported in `src/main.tsx`. Transparent - requires no application code changes.
-
-## Template Generation Best Practices
-
-### DRY Principle for Templates
-
-- **Shared code belongs in base references** - If multiple templates need the same component/utility, add it to the base reference
-- **Overlays only for differences** - Only include files in `definitions/<template>/` that differ from the base
-- **Use excludes for removal** - Don't duplicate entire directories just to remove a few files; use `excludes` in YAML
-
-### Verification Workflow
-
-Always verify after changes:
-```bash
-# Quick verification (shows what changed)
-python3 tools/generate_templates.py -t <template> --verify --diffs
-
-# Full verification (includes Bun install/lint/build)
-python3 tools/generate_templates.py -t <template> --verify
-```
-
-### Common Pitfalls
-
-1. **Editing build/ directly** - Changes are lost on regeneration. Edit `reference/` or `definitions/` instead
-2. **Forgetting to regenerate** - After modifying base references or overlays, always regenerate affected templates
-3. **Skipping verification** - Use `--verify --diffs` to catch unintended changes before committing
-4. **Modifying core-utils.ts** - This file is marked DO NOT MODIFY and will break DO functionality
+See `DEPLOYMENT_SETUP.md` for secrets configuration.
 
 ## Code Quality Standards
 
-When working on templates or generation scripts:
-- **No `any` types** - Always use proper TypeScript types. If none exists, create one
-- **No dynamic imports** - Use static imports for better tree-shaking and type safety
-- **Strict DRY** - Extract shared code, don't duplicate
-- **Professional comments only** - Comments should explain code purpose, not document changes
-- **Implement correctly, not quickly** - Prefer robust solutions over quick hacks
+- **No `any` types** - Always use proper TypeScript types
+- **No HTML elements** - Only React Native components
+- **StyleSheet only** - No Tailwind CSS or className
+- **Strict DRY** - Extract shared code to base reference
+- **Professional comments** - Explain purpose, not changes
+
+## Common Pitfalls
+
+1. **Using HTML elements** - Use `View`, `Text`, `TouchableOpacity` instead
+2. **Using Tailwind/className** - Use `StyleSheet.create()` instead
+3. **Editing build/ directly** - Changes are lost on regeneration
+4. **Modifying core-utils.ts** - This file is marked DO NOT MODIFY
+5. **Forgetting prompts/** - Each template needs `selection.md` and `usage.md`

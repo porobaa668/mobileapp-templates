@@ -1,0 +1,8 @@
+name: "expo-DO"
+description: "React Native/Expo application with Cloudflare Durable Objects"
+base_reference: "expo-reference"
+projectType: app
+
+# Patch package.json to match template name
+package_patches:
+  name: "expo-do-app"

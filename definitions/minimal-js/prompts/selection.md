@@ -1,3 +1,0 @@
-# Template Selection Guidelines
-
-[DONT USE THIS TEMPLATE!] THIS IS AN EXPERIMENTAL TEMPLATE, DON'T USE IT!

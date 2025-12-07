@@ -1,0 +1,52 @@
+{
+  "name": "expo-mobile-app",
+  "version": "1.0.0",
+  "main": "expo-router/entry",
+  "scripts": {
+    "start": "expo start",
+    "dev": "expo start --web --tunnel --port ${PORT:-8081}",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web",
+    "lint": "eslint . --ext .ts,.tsx",
+    "deploy": "wrangler deploy"
+  },
+  "dependencies": {
+    "expo": "~52.0.0",
+    "expo-router": "~4.0.0",
+    "expo-status-bar": "~2.0.0",
+    "expo-linear-gradient": "~14.0.0",
+    "expo-haptics": "~14.0.0",
+    "expo-constants": "~17.0.0",
+    "expo-font": "~13.0.0",
+    "expo-image": "~2.0.0",
+    "expo-linking": "~7.0.0",
+    "expo-splash-screen": "~0.29.0",
+    "expo-system-ui": "~4.0.0",
+    "expo-web-browser": "~14.0.0",
+    "react": "18.3.1",
+    "react-native": "0.76.5",
+    "react-native-gesture-handler": "~2.20.0",
+    "react-native-reanimated": "~3.16.0",
+    "react-native-safe-area-context": "4.12.0",
+    "react-native-screens": "~4.3.0",
+    "@react-native-async-storage/async-storage": "^2.1.0",
+    "@expo/vector-icons": "^14.0.0",
+    "@expo/ngrok": "^4.1.3",
+    "date-fns": "^4.1.0",
+    "zustand": "^5.0.0",
+    "immer": "^10.1.1",
+    "hono": "^4.9.8"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.25.2",
+    "@types/react": "~18.3.12",
+    "typescript": "^5.3.3",
+    "eslint": "^8.57.0",
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "wrangler": "^3.99.0",
+    "@cloudflare/workers-types": "^4.20241205.0"
+  },
+  "private": true
+}

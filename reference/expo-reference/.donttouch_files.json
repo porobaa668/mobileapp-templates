@@ -1,0 +1,9 @@
+{
+  "files.to.never.modify": [
+    "app.json",
+    "babel.config.js",
+    "tsconfig.json",
+    "metro.config.js"
+  ],
+  "reason": "These are core Expo configuration files. Modifying them may break the build process."
+}

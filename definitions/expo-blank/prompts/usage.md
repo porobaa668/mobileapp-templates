@@ -1,13 +1,30 @@
 # Usage
 
 ## Built with
-- Expo SDK 52, expo-router ~4.0, React Native 0.76
+- Expo SDK 54, expo-router ~5.0, React Native 0.81
+- react-native-web ~0.20 for web preview
 - Pre-built UI components (Button, Card, TextInput)
 - @expo/vector-icons for icons
 - react-native-reanimated for animations
 - AsyncStorage for local persistence
-- Cloudflare Workers backend with Hono (for API routes)
+- zustand for state management
 - TypeScript, ESLint
+
+## CRITICAL: Mobile-Only Development
+
+**This is a React Native mobile app. There is NO backend server in this template.**
+
+### NEVER install or use:
+- `hono`, `express`, `fastify`, or ANY server framework
+- `hono/cors`, `hono/logger`, or any middleware packages
+- `cloudflare:workers` or Cloudflare-specific packages
+- Any Node.js server packages
+
+### This template is for CLIENT-SIDE mobile apps only:
+- Use `fetch()` to call external APIs if needed
+- Use AsyncStorage for local data persistence
+- Use zustand for state management
+- NO server-side code, NO API routes
 
 ## Critical Restrictions
 
@@ -21,6 +38,8 @@
 - Tailwind CSS or `className` props
 - CSS files or web styles
 - React Router DOM or web navigation
+- Server frameworks (hono, express, etc.)
+- Backend API route patterns
 
 ## Styling
 - Use `StyleSheet.create()` for all styles
@@ -37,7 +56,7 @@
 - Avoid reinventing basic components
 
 ## Example
-\`\`\`tsx
+```tsx
 import { View, Text, StyleSheet } from 'react-native';
 import { Button, Card, CardContent } from '@/components/ui';
 
@@ -68,11 +87,11 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
 });
-\`\`\`
+```
 
 ## Local Storage
 - Use `@/lib/storage` for AsyncStorage wrapper
-\`\`\`tsx
+```tsx
 import { storage } from '@/lib/storage';
 
 // Save data
@@ -80,46 +99,23 @@ await storage.set('user', { name: 'John' });
 
 // Get data
 const user = await storage.get<{ name: string }>('user');
-\`\`\`
+```
 
----
+## State Management
+- Use zustand for global state (already installed)
+```tsx
+import { create } from 'zustand';
 
-## Backend API (Cloudflare Workers)
-
-The template includes a Cloudflare Workers backend for API routes.
-
-### Adding API Routes
-Add routes in `worker/userRoutes.ts`:
-\`\`\`typescript
-import { Hono } from "hono";
-import { Env } from './core-utils';
-
-export function userRoutes(app: Hono<{ Bindings: Env }>) {
-    // Add your routes here
-    app.get('/api/items', (c) => c.json({ success: true, data: [] }));
-    
-    app.post('/api/items', async (c) => {
-        const body = await c.req.json();
-        return c.json({ success: true, data: body });
-    });
+interface CounterStore {
+  count: number;
+  increment: () => void;
 }
-\`\`\`
 
-### Calling API from React Native
-\`\`\`tsx
-const API_URL = process.env.EXPO_PUBLIC_API_URL || '';
-
-async function fetchItems() {
-  const response = await fetch(\`\${API_URL}/api/items\`);
-  const data = await response.json();
-  return data;
-}
-\`\`\`
-
-### Important Backend Rules
-- **DO NOT** modify `worker/index.ts` or `worker/core-utils.ts`
-- **DO NOT** modify CORS settings or error handlers
-- Add all custom routes in `worker/userRoutes.ts`
+const useCounter = create<CounterStore>((set) => ({
+  count: 0,
+  increment: () => set((state) => ({ count: state.count + 1 })),
+}));
+```
 
 ---
 
@@ -128,7 +124,7 @@ async function fetchItems() {
 Router hooks (`useRouter`, `useLocalSearchParams`, `Link`) work inside the app directory.
 
 **File-based routing** (create files in `app/` directory):
-\`\`\`
+```
 app/
 ├── _layout.tsx      # Root layout
 ├── index.tsx        # Home screen (/)
@@ -137,10 +133,10 @@ app/
 │   ├── _layout.tsx  # Settings layout
 │   └── index.tsx    # Settings screen (/settings)
 └── [id].tsx         # Dynamic route (/123, /abc)
-\`\`\`
+```
 
 **Navigation:**
-\`\`\`tsx
+```tsx
 import { Link, useRouter } from 'expo-router';
 
 // Declarative
@@ -153,10 +149,10 @@ const router = useRouter();
 router.push('/about');
 router.replace('/home');
 router.back();
-\`\`\`
+```
 
 **Dynamic routes:**
-\`\`\`tsx
+```tsx
 // app/user/[id].tsx
 import { useLocalSearchParams } from 'expo-router';
 
@@ -164,7 +160,7 @@ export default function UserScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   return <Text>User ID: {id}</Text>;
 }
-\`\`\`
+```
 
 **Common errors:**
 - "Cannot find module" -> Check file path in app/ directory
